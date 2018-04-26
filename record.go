@@ -88,7 +88,12 @@ func makeRecordCodec(st map[string]*Codec, enclosingNamespace string, schemaMap 
 	c.binaryFromNative = func(buf []byte, datum interface{}) ([]byte, error) {
 		valueMap, ok := datum.(map[string]interface{})
 		if !ok {
-			return nil, fmt.Errorf("cannot encode binary record %q: expected map[string]interface{}; received: %T", c.typeName, datum)
+			u, ok := datum.(UnionType)
+			if ok {
+				valueMap = map[string]interface{}(u)
+			} else {
+				return nil, fmt.Errorf("cannot encode binary record %q: expected map[string]interface{}; received: %T", c.typeName, datum)
+			}
 		}
 
 		// records encoded in order fields were defined in schema
@@ -160,7 +165,12 @@ func makeRecordCodec(st map[string]*Codec, enclosingNamespace string, schemaMap 
 		// return an error.
 		sourceMap, ok := datum.(map[string]interface{})
 		if !ok {
-			return nil, fmt.Errorf("cannot encode textual record %q: expected map[string]interface{}; received: %T", c.typeName, datum)
+			u, ok := datum.(UnionType)
+			if ok {
+				sourceMap = map[string]interface{}(u)
+			} else {
+				return nil, fmt.Errorf("cannot encode textual record %q: expected map[string]interface{}; received: %T", c.typeName, datum)
+			}
 		}
 		destMap := make(map[string]interface{}, len(codecFromIndex))
 		for fieldName := range codecFromFieldName {

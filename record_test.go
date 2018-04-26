@@ -530,10 +530,10 @@ func ExampleBinaryFromNative() {
 
 	// Convert native Go form to binary Avro data
 	binary, err := codec.BinaryFromNative(nil, map[string]interface{}{
-		"next": map[string]interface{}{
-			"LongList": map[string]interface{}{
-				"next": map[string]interface{}{
-					"LongList": map[string]interface{}{
+		"next": UnionType{
+			"LongList": UnionType{
+				"next": UnionType{
+					"LongList": UnionType{
 					// NOTE: May omit fields when using default value
 					},
 				},
@@ -616,10 +616,10 @@ func ExampleTextualFromNative() {
 
 	// Convert native Go form to text Avro data
 	text, err := codec.TextualFromNative(nil, map[string]interface{}{
-		"next": map[string]interface{}{
-			"LongList": map[string]interface{}{
-				"next": map[string]interface{}{
-					"LongList": map[string]interface{}{
+		"next": UnionType{
+			"LongList": UnionType{
+				"next": UnionType{
+					"LongList": UnionType{
 					// NOTE: May omit fields when using default value
 					},
 				},

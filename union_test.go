@@ -111,7 +111,7 @@ func TestUnionMapRecordFitsInRecord(t *testing.T) {
 		t.Errorf("GOT: %#v; WANT: %#v", actual, expected)
 	}
 
-	datumOutMap, ok := datumOut.(map[string]interface{})
+	datumOutMap, ok := datumOut.(UnionType)
 	if !ok {
 		t.Fatalf("GOT: %#v; WANT: %#v", ok, false)
 	}
@@ -192,7 +192,7 @@ func ExampleUnion3() {
 	if native == nil {
 		fmt.Print("decoded null: ")
 	} else {
-		for k, v := range native.(map[string]interface{}) {
+		for k, v := range native.(UnionType) {
 			switch k {
 			case "double":
 				fmt.Print("decoded double: ")

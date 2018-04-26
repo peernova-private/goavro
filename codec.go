@@ -363,6 +363,8 @@ func (c *Codec) Schema() string {
 // namespace
 func buildCodec(st map[string]*Codec, enclosingNamespace string, schema interface{}) (*Codec, error) {
 	switch schemaType := schema.(type) {
+	case UnionType:
+		return buildCodecForTypeDescribedByMap(st, enclosingNamespace, map[string]interface{}(schemaType))
 	case map[string]interface{}:
 		return buildCodecForTypeDescribedByMap(st, enclosingNamespace, schemaType)
 	case string:
@@ -390,6 +392,8 @@ func buildCodecForTypeDescribedByMap(st map[string]*Codec, enclosingNamespace st
 		// EXAMPLE: "type":"record"
 		// EXAMPLE: "type":"somePreviouslyDefinedCustomTypeString"
 		return buildCodecForTypeDescribedByString(st, enclosingNamespace, v, schemaMap)
+	case UnionType:
+		return buildCodecForTypeDescribedByMap(st, enclosingNamespace, map[string]interface{}(v))
 	case map[string]interface{}:
 		return buildCodecForTypeDescribedByMap(st, enclosingNamespace, v)
 	case []interface{}:

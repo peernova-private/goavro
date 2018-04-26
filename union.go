@@ -15,6 +15,8 @@ import (
 	"fmt"
 )
 
+type UnionType map[string]interface{}
+
 // Union wraps a datum value in a map for encoding as a Union, as required by
 // Union encoder.
 //
@@ -40,7 +42,7 @@ func Union(name string, datum interface{}) interface{} {
 	if datum == nil && name == "null" {
 		return nil
 	}
-	return map[string]interface{}{name: datum}
+	return UnionType{name: datum}
 }
 
 func buildCodecForTypeDescribedBySlice(st map[string]*Codec, enclosingNamespace string, schemaArray []interface{}) (*Codec, error) {
@@ -106,7 +108,7 @@ func buildCodecForTypeDescribedBySlice(st map[string]*Codec, enclosingNamespace 
 					return nil, fmt.Errorf("cannot encode binary union: no member schema types support datum: allowed types: %v; received: %T", allowedTypes, datum)
 				}
 				return longBinaryFromNative(buf, index)
-			case map[string]interface{}:
+			case UnionType:
 				if len(v) != 1 {
 					return nil, fmt.Errorf("cannot encode binary union: non-nil Union values ought to be specified with Go map[string]interface{}, with single key equal to type name, and value equal to datum value: %v; received: %T", allowedTypes, datum)
 				}
@@ -137,7 +139,7 @@ func buildCodecForTypeDescribedBySlice(st map[string]*Codec, enclosingNamespace 
 				return nil, nil, fmt.Errorf("cannot decode textual union: %s", err)
 			}
 
-			return datum, buf, nil
+			return UnionType(datum.(map[string]interface{})), buf, nil
 		},
 		textualFromNative: func(buf []byte, datum interface{}) ([]byte, error) {
 			switch v := datum.(type) {
@@ -147,7 +149,7 @@ func buildCodecForTypeDescribedBySlice(st map[string]*Codec, enclosingNamespace 
 					return nil, fmt.Errorf("cannot encode textual union: no member schema types support datum: allowed types: %v; received: %T", allowedTypes, datum)
 				}
 				return append(buf, "null"...), nil
-			case map[string]interface{}:
+			case UnionType:
 				if len(v) != 1 {
 					return nil, fmt.Errorf("cannot encode textual union: non-nil Union values ought to be specified with Go map[string]interface{}, with single key equal to type name, and value equal to datum value: %v; received: %T", allowedTypes, datum)
 				}
@@ -155,7 +157,7 @@ func buildCodecForTypeDescribedBySlice(st map[string]*Codec, enclosingNamespace 
 				for key, value := range v {
 					index, ok := indexFromName[key]
 					if !ok {
-						return nil, fmt.Errorf("cannot encode textual union: no member schema types support datum: allowed types: %v; received: %T", allowedTypes, datum)
+						return nil, fmt.Errorf(" cannot encode textual union: no member schema types support datum: allowed types: %v; received: %T", allowedTypes, datum)
 					}
 					buf = append(buf, '{')
 					var err error
