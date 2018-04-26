@@ -209,6 +209,9 @@ func convertArray(datum interface{}) ([]interface{}, error) {
 	// NOTE: When given a slice of any other type, zip values to
 	// items as a convenience to client.
 	v := reflect.ValueOf(datum)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
 	if v.Kind() != reflect.Slice {
 		return nil, fmt.Errorf("cannot create []interface{}: expected slice; received: %T", datum)
 	}
