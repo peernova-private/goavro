@@ -11,6 +11,7 @@ package goavro
 
 import (
 	"fmt"
+	"reflect"
 )
 
 func makeRecordCodec(st map[string]*Codec, enclosingNamespace string, schemaMap map[string]interface{}) (*Codec, error) {
@@ -86,6 +87,12 @@ func makeRecordCodec(st map[string]*Codec, enclosingNamespace string, schemaMap 
 	}
 
 	c.binaryFromNative = func(buf []byte, datum interface{}) ([]byte, error) {
+		if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+			if !v.IsValid() || v.IsNil() {
+				return buf, nil
+			}
+			datum = v.Elem().Interface()
+		}
 		valueMap, ok := datum.(map[string]interface{})
 		if !ok {
 			u, ok := datum.(UnionType)
@@ -160,6 +167,12 @@ func makeRecordCodec(st map[string]*Codec, enclosingNamespace string, schemaMap 
 	}
 
 	c.textualFromNative = func(buf []byte, datum interface{}) ([]byte, error) {
+		if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+			if !v.IsValid() || v.IsNil() {
+				return buf, nil
+			}
+			datum = v.Elem().Interface()
+		}
 		// NOTE: Ensure only schema defined field names are encoded; and if
 		// missing in datum, either use the provided field default value or
 		// return an error.

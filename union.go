@@ -13,6 +13,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"reflect"
 )
 
 type UnionType map[string]interface{}
@@ -39,6 +40,12 @@ type UnionType map[string]interface{}
 //        // Output: {"string":"some string"}
 //     }
 func Union(name string, datum interface{}) interface{} {
+	if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+		if !v.IsValid() || v.IsNil() {
+			return nil
+		}
+		datum = v.Elem().Interface()
+	}
 	if datum == nil && name == "null" {
 		return nil
 	}
@@ -101,6 +108,12 @@ func buildCodecForTypeDescribedBySlice(st map[string]*Codec, enclosingNamespace 
 			return Union(allowedTypes[index], decoded), buf, nil
 		},
 		binaryFromNative: func(buf []byte, datum interface{}) ([]byte, error) {
+			if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+				if !v.IsValid() || v.IsNil() {
+					return buf, nil
+				}
+				datum = v.Elem().Interface()
+			}
 			switch v := datum.(type) {
 			case nil:
 				index, ok := indexFromName["null"]
@@ -142,6 +155,12 @@ func buildCodecForTypeDescribedBySlice(st map[string]*Codec, enclosingNamespace 
 			return UnionType(datum.(map[string]interface{})), buf, nil
 		},
 		textualFromNative: func(buf []byte, datum interface{}) ([]byte, error) {
+			if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+				if !v.IsValid() || v.IsNil() {
+					return buf, nil
+				}
+				datum = v.Elem().Interface()
+			}
 			switch v := datum.(type) {
 			case nil:
 				_, ok := indexFromName["null"]

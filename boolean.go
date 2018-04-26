@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
 )
 
 func booleanNativeFromBinary(buf []byte) (interface{}, []byte, error) {
@@ -33,6 +34,12 @@ func booleanNativeFromBinary(buf []byte) (interface{}, []byte, error) {
 }
 
 func booleanBinaryFromNative(buf []byte, datum interface{}) ([]byte, error) {
+	if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+		if !v.IsValid() || v.IsNil() {
+			return buf, nil
+		}
+		datum = v.Elem().Interface()
+	}
 	value, ok := datum.(bool)
 	if !ok {
 		return nil, fmt.Errorf("cannot encode binary boolean: expected: Go bool; received: %T", datum)
@@ -61,6 +68,12 @@ func booleanNativeFromTextual(buf []byte) (interface{}, []byte, error) {
 }
 
 func booleanTextualFromNative(buf []byte, datum interface{}) ([]byte, error) {
+	if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+		if !v.IsValid() || v.IsNil() {
+			return buf, nil
+		}
+		datum = v.Elem().Interface()
+	}
 	value, ok := datum.(bool)
 	if !ok {
 		return nil, fmt.Errorf("boolean: expected: Go bool; received: %T", datum)

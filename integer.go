@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"reflect"
 )
 
 const (
@@ -61,6 +62,12 @@ func longNativeFromBinary(buf []byte) (interface{}, []byte, error) {
 
 func intBinaryFromNative(buf []byte, datum interface{}) ([]byte, error) {
 	var value int32
+	if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+		if !v.IsValid() || v.IsNil() {
+			return buf, nil
+		}
+		datum = v.Elem().Interface()
+	}
 	switch v := datum.(type) {
 	case int32:
 		value = v
@@ -89,6 +96,12 @@ func intBinaryFromNative(buf []byte, datum interface{}) ([]byte, error) {
 
 func longBinaryFromNative(buf []byte, datum interface{}) ([]byte, error) {
 	var value int64
+	if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+		if !v.IsValid() || v.IsNil() {
+			return buf, nil
+		}
+		datum = v.Elem().Interface()
+	}
 	switch v := datum.(type) {
 	case int64:
 		value = v
@@ -168,6 +181,12 @@ func intTextualFromNative(buf []byte, datum interface{}) ([]byte, error) {
 
 func integerTextEncoder(buf []byte, datum interface{}, bitSize int) ([]byte, error) {
 	var someInt64 int64
+	if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+		if !v.IsValid() || v.IsNil() {
+			return buf, nil
+		}
+		datum = v.Elem().Interface()
+	}
 	switch v := datum.(type) {
 	case int:
 		someInt64 = int64(v)

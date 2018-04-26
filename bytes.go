@@ -17,6 +17,7 @@ import (
 	"unicode"
 	"unicode/utf16"
 	"unicode/utf8"
+	"reflect"
 )
 
 ////////////////////////////////////////
@@ -56,6 +57,12 @@ func stringNativeFromBinary(buf []byte) (interface{}, []byte, error) {
 
 func bytesBinaryFromNative(buf []byte, datum interface{}) ([]byte, error) {
 	var d []byte
+	if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+		if !v.IsValid() || v.IsNil() {
+			return buf, nil
+		}
+		datum = v.Elem().Interface()
+	}
 	switch datum.(type) {
 	case []byte:
 		d = datum.([]byte)
@@ -69,6 +76,12 @@ func bytesBinaryFromNative(buf []byte, datum interface{}) ([]byte, error) {
 }
 
 func stringBinaryFromNative(buf []byte, datum interface{}) ([]byte, error) {
+	if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+		if !v.IsValid() || v.IsNil() {
+			return buf, nil
+		}
+		datum = v.Elem().Interface()
+	}
 	someBytes, ok := datum.(string)
 	if !ok {
 		return nil, fmt.Errorf("cannot encode binary bytes: expected: string; received: %T", datum)

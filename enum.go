@@ -12,6 +12,7 @@ package goavro
 import (
 	"fmt"
 	"io"
+	"reflect"
 )
 
 // enum does not have child objects, therefore whatever namespace it defines is
@@ -58,6 +59,12 @@ func makeEnumCodec(st map[string]*Codec, enclosingNamespace string, schemaMap ma
 		return symbols[index], buf, nil
 	}
 	c.binaryFromNative = func(buf []byte, datum interface{}) ([]byte, error) {
+		if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+			if !v.IsValid() || v.IsNil() {
+				return buf, nil
+			}
+			datum = v.Elem().Interface()
+		}
 		someString, ok := datum.(string)
 		if !ok {
 			return nil, fmt.Errorf("cannot encode binary enum %q: expected string; received: %T", c.typeName, datum)
@@ -89,6 +96,12 @@ func makeEnumCodec(st map[string]*Codec, enclosingNamespace string, schemaMap ma
 		return nil, nil, fmt.Errorf("cannot decode textual enum %q: value ought to be member of symbols: %v; %q", c.typeName, symbols, someString)
 	}
 	c.textualFromNative = func(buf []byte, datum interface{}) ([]byte, error) {
+		if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+			if !v.IsValid() || v.IsNil() {
+				return buf, nil
+			}
+			datum = v.Elem().Interface()
+		}
 		someString, ok := datum.(string)
 		if !ok {
 			return nil, fmt.Errorf("cannot encode textual enum %q: expected string; received: %T", c.typeName, datum)

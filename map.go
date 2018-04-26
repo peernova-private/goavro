@@ -278,13 +278,20 @@ func genericMapTextEncoder(buf []byte, datum interface{}, defaultCodec *Codec, c
 
 // convertMap converts datum to map[string]interface{} if possible.
 func convertMap(datum interface{}) (map[string]interface{}, error) {
+	v := reflect.ValueOf(datum)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+		if !v.IsValid() || v.IsNil() {
+			return nil, nil
+		}
+		datum = v.Interface()
+	}
 	mapValues, ok := datum.(map[string]interface{})
 	if ok {
 		return mapValues, nil
 	}
 	// NOTE: When given a map of any other type, zip values to items as a
 	// convenience to client.
-	v := reflect.ValueOf(datum)
 	if v.Kind() != reflect.Map {
 		return nil, fmt.Errorf("cannot create map[string]interface{}: expected map[string]...; received: %T", datum)
 	}

@@ -16,6 +16,7 @@ import (
 	"io"
 	"math"
 	"strconv"
+	"reflect"
 )
 
 const (
@@ -47,6 +48,12 @@ func floatNativeFromBinary(buf []byte) (interface{}, []byte, error) {
 
 func doubleBinaryFromNative(buf []byte, datum interface{}) ([]byte, error) {
 	var value float64
+	if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+		if !v.IsValid() || v.IsNil() {
+			return buf, nil
+		}
+		datum = v.Elem().Interface()
+	}
 	switch v := datum.(type) {
 	case float64:
 		value = v
@@ -74,6 +81,12 @@ func doubleBinaryFromNative(buf []byte, datum interface{}) ([]byte, error) {
 
 func floatBinaryFromNative(buf []byte, datum interface{}) ([]byte, error) {
 	var value float32
+	if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+		if !v.IsValid() || v.IsNil() {
+			return buf, nil
+		}
+		datum = v.Elem().Interface()
+	}
 	switch v := datum.(type) {
 	case float32:
 		value = v
@@ -247,6 +260,12 @@ func floatingTextEncoder(buf []byte, datum interface{}, bitSize int) ([]byte, er
 	var isFloat bool
 	var someFloat64 float64
 	var someInt64 int64
+	if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+		if !v.IsValid() || v.IsNil() {
+			return buf, nil
+		}
+		datum = v.Elem().Interface()
+	}
 	switch v := datum.(type) {
 	case float32:
 		isFloat = true

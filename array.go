@@ -202,16 +202,20 @@ func makeArrayCodec(st map[string]*Codec, enclosingNamespace string, schemaMap m
 
 // convertArray converts interface{} to []interface{} if possible.
 func convertArray(datum interface{}) ([]interface{}, error) {
+	v := reflect.ValueOf(datum)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+		if !v.IsValid() || v.IsNil() {
+			return nil, nil
+		}
+		datum = v.Interface()
+	}
 	arrayValues, ok := datum.([]interface{})
 	if ok {
 		return arrayValues, nil
 	}
 	// NOTE: When given a slice of any other type, zip values to
 	// items as a convenience to client.
-	v := reflect.ValueOf(datum)
-	if v.Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
 	if v.Kind() != reflect.Slice {
 		return nil, fmt.Errorf("cannot create []interface{}: expected slice; received: %T", datum)
 	}

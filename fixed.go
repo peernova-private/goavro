@@ -11,6 +11,7 @@ package goavro
 
 import (
 	"fmt"
+	"reflect"
 )
 
 // Fixed does not have child objects, therefore whatever namespace it defines is
@@ -39,6 +40,12 @@ func makeFixedCodec(st map[string]*Codec, enclosingNamespace string, schemaMap m
 	}
 
 	c.binaryFromNative = func(buf []byte, datum interface{}) ([]byte, error) {
+		if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+			if !v.IsValid() || v.IsNil() {
+				return buf, nil
+			}
+			datum = v.Elem().Interface()
+		}
 		someBytes, ok := datum.([]byte)
 		if !ok {
 			return nil, fmt.Errorf("cannot encode binary fixed %q: expected []byte; received: %T", c.typeName, datum)
@@ -67,6 +74,12 @@ func makeFixedCodec(st map[string]*Codec, enclosingNamespace string, schemaMap m
 	}
 
 	c.textualFromNative = func(buf []byte, datum interface{}) ([]byte, error) {
+		if v := reflect.ValueOf(datum); v.Kind() == reflect.Ptr {
+			if !v.IsValid() || v.IsNil() {
+				return buf, nil
+			}
+			datum = v.Elem().Interface()
+		}
 		someBytes, ok := datum.([]byte)
 		if !ok {
 			return nil, fmt.Errorf("cannot encode textual fixed %q: expected []byte; received: %T", c.typeName, datum)
